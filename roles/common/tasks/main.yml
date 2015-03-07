@@ -1,0 +1,19 @@
+---
+# tasks file for common
+
+- name: Install EPEL repo
+  yum: name=epel-release state=latest
+  tags:
+    - yum
+    - pkg
+    - epel
+
+- name: Install system dependencies
+  yum: name={{ item }} state=present
+  with_items:
+    - vim
+    - tar
+  tags:
+    - yum
+    - pkg
+
