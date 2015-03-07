@@ -2,7 +2,7 @@
 # tasks file for common
 
 - name: Install EPEL repo
-  yum: name=epel-release state=latest
+  yum: name=epel-release state=present
   tags:
     - yum
     - pkg
@@ -13,7 +13,9 @@
   with_items:
     - vim
     - tar
+    - policycoreutils-python
   tags:
     - yum
     - pkg
 
+- include: "sshd.yml"

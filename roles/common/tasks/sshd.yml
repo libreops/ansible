@@ -1,0 +1,9 @@
+---
+- include_vars: private.yml
+- lineinfile: dest=/etc/ssh/sshd_config line="Port {{ sshd_port }}" state=present
+- firewalld: port={{ sshd_port }}/tcp permanent=true state=enabled
+- command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
+- service: name=sshd state=restarted
+- firewalld: port=22/tcp permanent=true state=disabled
+#1.9 - firewalld: port=22/tcp permanent=true state=disabled immediate=yes
+- service: name=firewalld state=restarted
