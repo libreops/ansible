@@ -18,4 +18,10 @@
     - yum
     - pkg
 
-- include: "sshd.yml"
+- name: Add admins
+  user: name={{ item.name }} group={{ item.name }} groups=wheel state=present
+  with_items: admins
+
+- name: Add ssh keys
+  authorized_key: user={{ item.name }} key="{{ item.key }}"
+  with_items: admins

@@ -2,7 +2,9 @@
 
 - hosts: all
   sudo: yes
+  gather_facts: True
+  vars_files:
+  - vars/private.yml
 
   roles:
     - common
-
