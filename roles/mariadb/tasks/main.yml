@@ -1,0 +1,18 @@
+---
+# tasks file for mariadb
+- name: Install MariaDB
+  yum: name={{ item }} state=present
+  with_items:
+    - mariadb
+    - mariadb-server
+    - mariadb-devel
+    - MySQL-python
+  tags:
+    - database
+
+- name: Ensure MariaDB is started and enabled on boot
+  service: name=mariadb state=started enabled=yes
+  tags:
+    - database
+
+- include: secure-installation.yml tags=database
