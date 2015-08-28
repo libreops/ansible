@@ -1,5 +1,6 @@
 ---
 # tasks file for common
+- include_vars: private.yml
 
 - name: Install EPEL repo
   yum: name=epel-release state=present
@@ -14,9 +15,13 @@
     - vim
     - tar
     - policycoreutils-python
+    - git
   tags:
     - yum
     - pkg
+
+- name: Add deploy group
+  group: name=deploy state=present
 
 - name: Add admins
   user: name={{ item.name }} group={{ item.name }} groups=wheel state=present
