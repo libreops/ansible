@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+[Unit]
+Description=pad node daemon for {{ sitename }}
+After=network.target
+
+[Service]
+Type=simple
+User=pad
+Group=pad
+ExecStart={{ app_dir }}/bin/run.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

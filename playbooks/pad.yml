@@ -1,0 +1,7 @@
+---
+- hosts: jupiter
+  sudo: yes
+  sudo_user: root
+
+  roles:
+    - { role: pad, tags: ['pad'] }

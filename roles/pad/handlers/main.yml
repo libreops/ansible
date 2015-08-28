@@ -1,0 +1,10 @@
+---
+# handlers file for nginx
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: daemon reload
+  command: systemctl daemon-reload
+
+- name: "restart pad-{{ sitename }}"
+  service: name="pad-{{ sitename }}" state=restarted

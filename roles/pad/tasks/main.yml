@@ -1,0 +1,123 @@
+---
+- include_vars: private.yml
+
+- name: Install pad system requirements
+  yum: name={{ item }} state=present
+  with_items:
+    - gzip
+    - openssl-devel
+    - curl
+    - gcc
+    - nodejs
+    - npm
+  tags:
+    - yum
+    - pkg
+    - pad
+
+#- name: install the 'Development tools' package group
+#  yum: name="@Development tools" state=present
+
+- name: Add pad group
+  group: name=pad state=present
+
+- name: Add pad user
+  user: name=pad group=pad state=present
+
+- name: Create pad directories
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: pad
+    group: pad
+    recurse: yes
+
+- name: Pull sources from the repository
+  sudo: yes
+  sudo_user: pad
+  git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_dir }}"
+    version: "{{ repo_branch }}"
+    force: yes
+    update: yes
+  tags:
+    - repo
+    - app
+
+- name: Install pad dependencies
+  command: bin/installDeps.sh chdir={{ app_dir }} creates={{ app_dir }}/.node-gyp
+  sudo: yes
+  sudo_user: pad
+
+- name: Install padlist plugin
+  npm:
+    name: ep_padlist
+    path: "{{ app_dir }}"
+    state: present
+  sudo: yes
+  sudo_user: pad
+
+- name: Create pad database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    collation: utf8_unicode_ci
+    encoding: utf8
+
+- name: Create mysql pad user and give privileges
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_pass }}"
+    state: present
+    priv: "{{ db_name }}.*:ALL"
+    host: "localhost"
+
+- name: Copy pad settings file
+  template:
+    src: "settings.json.j2"
+    dest: "{{ app_dir }}/settings.json"
+    owner: pad
+    group: pad
+    mode: 644
+  tags:
+    - pad
+
+- name: Copy pad systemd service file
+  template:
+    src:  'pad.service.j2'
+    dest: '/etc/systemd/system/pad-{{ sitename }}.service'
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - pad
+    - systemd
+  notify:
+    - daemon reload
+
+- name: Copy pad nginx vhost conf
+  template:
+    src: "pad.conf.j2"
+    dest: "/etc/nginx/conf.d/pad.conf"
+    owner: root
+    group: root
+    mode: 644
+  tags:
+    - pad
+    - nginx
+
+- name: Enable pad service
+  service: name=pad-{{ sitename }} state=started enabled=yes
+  tags:
+    - pad
+    - systemd
+
+
+- name: Restart pad and nginx
+  service: name=pad-{{ sitename }} state=restarted enabled=yes
+  notify:
+    - restart nginx
+  tags:
+    - pad
+    - nginx
