@@ -1,7 +1,7 @@
 vault-passwd.txt
-*private*
-!private.yml
+hosts
 *crt
 *key
-*.swp
-hosts
+*pem
+*csr
+*swp
