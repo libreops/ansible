@@ -1,12 +1,12 @@
 ---
-
-- hosts: all
+- hosts: jupiter
   sudo: yes
-  gather_facts: True
-  vars_files:
-  - vars/private.yml
+  sudo_user: root
 
   roles:
     - common
-    - nginx
-    - mariadb
+    - { role: firewalld, tags: ['firewall'] }
+    - { role: mariadb, tags: ['mariadb', 'database'] }
+    - { role: nginx, tags: ['nginx'] }
+
+- include: playbooks/pad.yml
