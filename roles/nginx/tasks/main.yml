@@ -7,12 +7,9 @@
   tags:
     - nginx
 
-- name: Enable nginx service
-  service: name=nginx state=started enabled=yes
-
 - name: Remove default configuration file
   file:
-    path: etc/nginx/nginx.conf.default
+    path: /etc/nginx/nginx.conf.default
     state: absent
   notify:
     - restart nginx
@@ -23,7 +20,7 @@
     state: directory
     owner: root
     group: root
-    mode: 755
+    mode: 0755
 
 - name: Copy configuration files
   template:
@@ -31,10 +28,10 @@
     dest: "{{ item.dest }}"
     owner: root
     group: root
-    mode: 644
+    mode: 0644
   with_items:
     - {
-      src: "../templates/nginx.conf.j2",
+      src: "nginx.conf.j2",
       dest: "/etc/nginx/nginx.conf"
       }
   notify: restart nginx
@@ -52,3 +49,34 @@
   changed_when: 'rm_result.stdout != ""'
   tags:
     - nginx
+
+- name: Create ssl directory
+  file:
+    path: /etc/ssl/hackerspace.gr/
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+  tags:
+    - ssl
+
+- name: Copy ssl cerificates
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0400
+  with_items:
+    - {
+      src: "ssl/hackerspace.gr/ssl-unified.crt",
+      dest: "{{ ssl_cert }}"
+      }
+    - {
+      src: "ssl/hackerspace.gr/ssl.key",
+      dest: "{{ ssl_cert_key }}"
+      }
+  notify: restart nginx
+
+- name: Enable nginx service
+  service: name=nginx state=started enabled=yes
