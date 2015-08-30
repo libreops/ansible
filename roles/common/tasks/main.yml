@@ -16,6 +16,7 @@
     - tar
     - policycoreutils-python
     - git
+    - bash-completion
   tags:
     - yum
     - pkg
