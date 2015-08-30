@@ -1,7 +1,7 @@
 ---
 # vars file for etherpad
 sitename: "pad.hackerspace.gr"
-siteport: "9001"
+siteport: "8888"
 repo_url: "https://github.com/hsgr/pad"
 app_dir: "/var/www/hackerspace.gr/pad"
 repo_branch: "master"
