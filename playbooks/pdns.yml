@@ -1,0 +1,6 @@
+---
+- hosts: jupiter
+  become: true
+
+  roles:
+    - { role: pdns, tags: ['pdns'] }

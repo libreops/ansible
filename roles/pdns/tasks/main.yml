@@ -1,0 +1,49 @@
+---
+- name: Enable required repos
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - {
+      src: "comzeradd-dnscrypt.repo",
+      dest: "/etc/yum.repos.d/"
+      }
+  tags:
+    - yum
+    - pdns
+
+- name: Install required packages
+  yum: name={{ item }} state=present
+  with_items:
+    - pdns-recursor
+    - dnscrypt-wrapper
+    - bind-utils
+  tags:
+    - yum
+    - pdns
+
+- name: Ensure PowerDNS configuration directory exists
+  file: name={{ pdns_rec_config_dir }} state=directory owner="root" group="root"
+
+- name: Add configuration for the PowerDNS Recursor
+  template: src=recursor.conf.j2 dest={{ pdns_rec_config_dir }}/recursor.conf
+  notify: Restart PowerDNS Recursor
+
+- name: Download Tier 1
+  command: dig . NS @75.127.96.89 | grep -v '^;' | sort -u -V > {{ pdns_rec_config_dir }}/root.hint
+
+- name: Add dns ports to firewall
+  firewalld: port={{ item }} zone=public permanent=true state=enabled
+  with_items:
+    - 53/udp
+  notify: restart firewalld
+  tags:
+    - pdns
+
+- name: Start and enable the PowerDNS Recursor service
+  service: name=pdns-recursor state=started enabled=true
+  tags:
+    - service
