@@ -1,0 +1,10 @@
+---
+# handlers file for prosody
+- name: restart prosody
+  service: name=prosody state=restarted
+
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: restart firewalld
+  service: name=firewalld state=restarted

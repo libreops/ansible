@@ -3,4 +3,4 @@
   become: true
 
   roles:
-    - { role: pad, tags: ['pad'] }
+    - { role: jabber, tags: ['jabber'] }
