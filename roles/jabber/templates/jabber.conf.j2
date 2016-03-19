@@ -22,8 +22,18 @@ server {
 
     location /static/ {
         if ($request_method = 'GET') {
-            add_header 'Access-Control-Allow-Origin' 'https://{{ vhost }}:{{ http_port }}/';
+            add_header 'Access-Control-Allow-Origin' '*';
             add_header 'Access-Control-Allow-Methods' 'GET';
         }
     }
+
+    location /modules/ {
+       return 301 https://gnu.gr/;
+    }
+
+    location /jabberbot/ {
+       return 301 https://gnu.gr/;
+    }
+
+    error_page 404 = /;
 }

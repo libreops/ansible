@@ -10,55 +10,6 @@
     - pkg
     - yum
 
-- name: Create prodody modules directory
-  file:
-    path: "{{ modules_path }}"
-    state: directory
-    owner: root
-    group: prosody
-    mode: 0750
-
-- name: Create prodody registration templates directory
-  file:
-    path: "{{ modules_path }}/templates"
-    state: directory
-    owner: root
-    group: prosody
-    mode: 0750
-
-- name: Get prosody community modules
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: root
-    group: prosody
-    mode: 0640
-  with_items:
-    - {
-      src: "mod_carbons.lua",
-      dest: "{{ modules_path }}/mod_carbons.lua"
-      }
-    - {
-      src: "mod_smacks.lua",
-      dest: "{{ modules_path }}/mod_smacks.lua"
-      }
-    - {
-      src: "mod_register_web.lua",
-      dest: "{{ modules_path }}/mod_register_web.lua"
-      }
-    - {
-      src: "templates/index.html",
-      dest: "{{ modules_path }}/templates/index.html"
-      }
-    - {
-      src: "templates/simplecaptcha.html",
-      dest: "{{ modules_path }}/templates/simplecaptcha.html"
-      }
-    - {
-      src: "templates/success.html",
-      dest: "{{ modules_path }}/templates/success.html"
-      }
-
 - name: Add gnu group
   group: name=gnu state=present
 
@@ -132,6 +83,27 @@
   tags:
     - repo
     - app
+
+- name: Create prodody modules directory
+  file:
+    path: "{{ modules_path }}"
+    state: directory
+    owner: root
+    group: prosody
+    mode: 0750
+
+- name: Move modules to prodody
+  command: >
+    rsync -avi "{{ website_path }}/modules/" "{{ modules_path }}/"
+
+- name: Fix modules permissions
+  file:
+    path: "{{ modules_path }}"
+    owner: root
+    group: prosody
+    mode: 0750
+    recurse: yes
+  notify: restart prosody
 
 - name: Copy jabber nginx vhost conf
   template:
