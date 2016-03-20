@@ -33,12 +33,11 @@
     recurse: yes
 
 - name: Pull sources from the repository
-  sudo: yes
-  sudo_user: pad
+  become_user: pad
   git:
     repo: "{{ repo_url }}"
     dest: "{{ app_dir }}"
-    version: "{{ repo_branch }}"
+    version: "{{ pad_tag }}"
     force: yes
     update: yes
   tags:
@@ -46,17 +45,18 @@
     - app
 
 - name: Install pad dependencies
+  become_user: pad
   command: bin/installDeps.sh chdir={{ app_dir }} creates={{ app_dir }}/.node-gyp
-  sudo: yes
-  sudo_user: pad
 
-- name: Install padlist plugin
+- name: Install plugins
+  become_user: pad
   npm:
-    name: ep_padlist
+    name: {{ item }}
     path: "{{ app_dir }}"
     state: present
-  sudo: yes
-  sudo_user: pad
+  with_items:
+    - ep_padlist
+    - ep_disableChat
 
 - name: Create pad database
   mysql_db:
