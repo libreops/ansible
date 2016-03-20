@@ -1,0 +1,101 @@
+admins = { {% for admin in admins %}"{{ admin }}"{% if not loop.last %},{%endif %}{% endfor %} }
+
+plugin_paths = { "{{ modules_path }}" }
+
+-- This is the list of modules Prosody will load on startup.
+modules_enabled = {
+    -- Generally required
+        "roster"; -- Allow users to have a roster. Recommended ;)
+        "saslauth"; -- Authentication for clients and servers. Recommended if you want to log in.
+        "tls"; -- Add support for secure TLS on c2s/s2s connections
+        "dialback"; -- s2s dialback support
+        "disco"; -- Service discovery
+
+    -- Not essential, but recommended
+        -- "private"; -- Private XML storage (for room bookmarks, etc.)
+        -- "vcard"; -- Allow users to set vCards
+
+    -- Nice to have
+        "version"; -- Replies to server version requests
+        "uptime"; -- Report how long server has been running
+        "time"; -- Let others know the time here on this server
+        "ping"; -- Replies to XMPP pings with pongs
+        "pep"; -- Enables users to publish their mood, activity, playing music and more
+        "register"; -- Allow users to register on this server using a client and change passwords
+
+    -- Admin interfaces
+        -- "admin_adhoc"; -- Allows administration via an XMPP client that supports ad-hoc commands
+        -- "admin_telnet"; -- Opens telnet console interface on localhost port 5582
+
+    -- HTTP modules
+        "http";
+        -- "bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
+        -- "http_files"; -- Serve static files from a directory over HTTP
+
+    -- Other specific functionality
+        "posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
+        "groups"; -- Shared roster support
+
+    -- community modules
+        "smacks";
+        "carbons";
+        "register_web";
+};
+
+-- These modules are auto-loaded, but should you want
+-- to disable them then uncomment them here:
+modules_disabled = {
+    -- "offline"; -- Store offline messages
+    -- "c2s"; -- Handle client connections
+    -- "s2s"; -- Handle server-to-server connections
+};
+
+-- Registration settings
+-- Clients must wait 60 minutes before they can register another account
+allow_registration = false;
+min_seconds_between_registrations = 3600;
+
+-- HTTP settings
+https_ports = { 5281 }
+https_interfaces = { "*" }
+http_paths = {
+    register_web = "/register";
+}
+
+-- These are the SSL/TLS-related settings. If you don't want
+-- to use SSL/TLS, you may comment or remove this
+ssl = {
+    key = "{{ cert_path }}/ssl.key";
+    certificate = "{{ cert_path }}/ssl.crt";
+    dhparam = "{{ cert_path }}/dhparam.pem";
+    ciphers = "ECDH:DH:!CAMELLIA128:!3DES:!MD5:!RC4:!aNULL:!NULL:!EXPORT:!LOW:!MEDIUM";
+}
+
+c2s_require_encryption = true
+s2s_require_encryption = true
+s2s_secure_auth = true
+
+authentication = "internal_hashed"
+
+-- Logging configuration
+-- For advanced logging see http://prosody.im/doc/logging
+log = {
+    -- info = "prosody.log"; -- Change 'info' to 'debug' for verbose logging
+    -- error = "prosody.err";
+    -- info = "/var/log/prosody/prosody.log";
+    -- debug = "/var/log/prosody/prosody.log";
+    error = "*syslog";
+    -- "*syslog"; -- Uncomment this for logging to syslog
+    -- "*console"; -- Log to the console, useful for debugging with daemonize=false
+}
+
+pidfile = "/var/run/prosody/prosody.pid"
+
+-- Group chats
+Component "conf.{{ vhost }}" "muc"
+  name = "{{ vhost }} chatrooms"
+  restrict_room_creation = true
+
+----------- Virtual hosts -----------
+VirtualHost "localhost"
+VirtualHost "{{ vhost }}"

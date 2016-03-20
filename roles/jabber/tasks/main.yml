@@ -1,0 +1,133 @@
+---
+- include_vars: private.yml
+
+- name: Install prosody
+  yum: name={{ item }} state=present
+  with_items:
+    - prosody
+    - letsencrypt
+  tags:
+    - pkg
+    - yum
+
+- name: Add gnu group
+  group: name=gnu state=present
+
+- name: Add gnu user
+  user: name=gnu group=gnu state=present
+
+- name: Create website directories
+  file:
+    path: "{{ website_path }}"
+    state: directory
+    owner: gnu
+    group: gnu
+    recurse: yes
+
+- name: Attempt to get the certificate using the webroot authenticator
+  command: letsencrypt --agree-tos --email {{ letsencrypt_email }} -a webroot -w {{ website_path }} -d {{ vhost }} -d www.{{ vhost }} certonly
+  args:
+    creates: "/etc/letsencrypt/live/{{ vhost }}"
+
+- name: Create dhparam.pem if not exists
+  command: openssl dhparam -out {{ cert_path }}/dhparam.pem 2048
+  args:
+    creates: "{{ cert_path }}/dhparam.pem"
+  tags:
+    - ssl
+
+- name: Copy SSL certs for prosody
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: true
+    owner: prosody
+    group: prosody
+    mode: 0400
+  with_items:
+    - {
+      src: "/etc/letsencrypt/live/{{ vhost }}/fullchain.pem",
+      dest: "{{ cert_path }}/ssl.crt"
+      }
+    - {
+      src: "/etc/letsencrypt/live/{{ vhost }}/privkey.pem",
+      dest: "{{ cert_path }}/ssl.key"
+      }
+  tags:
+    - ssl
+
+- name: Create dhparam.pem if not exists
+  command: >
+    openssl dhparam -out {{ cert_path }}/dhparam.pem 2048
+    creates={{ cert_path }}/dhparam.pem
+  tags:
+    - ssl
+
+- name: Copy prosody configuration file
+  template:
+    src: "prosody.cfg.lua.j2"
+    dest: "/etc/prosody/prosody.cfg.lua"
+    owner: root
+    group: prosody
+    mode: 0640
+  notify: restart prosody
+
+- name: Pull sources from the repository
+  become_user: gnu
+  git:
+    repo: "{{ repo_url }}"
+    dest: "{{ website_path }}"
+    version: "master"
+    force: yes
+    update: yes
+  tags:
+    - repo
+    - app
+
+- name: Create prodody modules directory
+  file:
+    path: "{{ modules_path }}"
+    state: directory
+    owner: root
+    group: prosody
+    mode: 0750
+
+- name: Move modules to prodody
+  command: >
+    rsync -avi "{{ website_path }}/modules/" "{{ modules_path }}/"
+
+- name: Fix modules permissions
+  file:
+    path: "{{ modules_path }}"
+    owner: root
+    group: prosody
+    mode: 0750
+    recurse: yes
+  notify: restart prosody
+
+- name: Copy jabber nginx vhost conf
+  template:
+    src: "jabber.conf.j2"
+    dest: "/etc/nginx/conf.d/jabber.conf"
+    owner: root
+    group: root
+    mode: 644
+  tags:
+    - nginx
+  notify: restart nginx
+
+- name: Add jabber ports to firewall
+  firewalld: port={{ item }} zone=public permanent=true state=enabled
+  with_items:
+    - 5222/tcp
+    - 5269/tcp
+    - "{{ http_port }}/tcp"
+  notify: restart firewalld
+  tags:
+    - firewall
+
+- name: Allow prosody to open http port
+  seport: ports={{ http_port }} proto=tcp setype=jabber_client_port_t state=present
+
+- name: Enable prosody service
+  service: name=prosody state=started enabled=yes
