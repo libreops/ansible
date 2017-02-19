@@ -5,3 +5,4 @@ hosts
 *pem
 *csr
 *swp
+*.retry

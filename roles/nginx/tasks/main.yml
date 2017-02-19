@@ -78,5 +78,14 @@
       }
   notify: restart nginx
 
+- name: Add nginx ports to firewall
+  firewalld: port={{ item }} zone=public permanent=true state=enabled
+  with_items:
+    - 80/tcp
+    - 443/tcp
+  notify: restart firewalld
+  tags:
+    - nginx
+
 - name: Enable nginx service
   service: name=nginx state=started enabled=yes

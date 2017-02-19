@@ -2,3 +2,6 @@
 # handlers file for nginx
 - name: restart nginx
   service: name=nginx state=restarted
+
+- name: restart firewalld
+  service: name=firewalld state=restarted
