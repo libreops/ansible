@@ -21,13 +21,9 @@
     - yum
     - pkg
 
-- name: Add deploy group
-  group: name=deploy state=present
-
-- name: Add admins
-  user: name={{ item.name }} group={{ item.name }} groups=wheel state=present
-  with_items: admins
-
-- name: Add ssh keys
-  authorized_key: user={{ item.name }} key="{{ item.key }}"
-  with_items: admins
+- name: Update admins
+  authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    exclusive: yes
+    key: "{{ admins|join('\n') }}"
