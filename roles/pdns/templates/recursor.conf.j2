@@ -2,7 +2,7 @@ allow-from=
 
 hint-file={{ pdns_rec_config_dir }}/root.hint
 
-local-address=127.0.0.1, {{ server_ip }}
+local-address=127.0.0.1, {{ ansible_host }}
 
 setuid={{ pdns_rec_user }}
 setgid={{ pdns_rec_group }}
