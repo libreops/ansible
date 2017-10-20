@@ -1,0 +1,81 @@
+---
+- name: Add murmur group
+  group: name=murmur state=present system=yes
+
+- name: Add murmur user
+  user:
+    name=murmur
+    group=murmur
+    state=present
+    system=yes
+    shell=/sbin/nologin
+    home=/var/lib/murmur
+
+- name: Create murmur directories
+  file:
+    path: "/var/{{ item }}/murmur"
+    state: directory
+    owner: murmur
+    group: murmur
+    mode: 0755
+  with_items:
+    - 'log'
+    - 'run'
+
+- name: Download murmur package
+  get_url:
+    url: https://github.com/mumble-voip/mumble/releases/download/1.2.19/murmur-static_x86-1.2.19.tar.bz2
+    dest: /opt/murmur.tar.bz2
+    checksum: sha256:f420788651c33187b3374eef6072203017c4ae1d2eeed351b0159f8b1fed910e
+
+- name: Uncompress murmur package
+  unarchive:
+    src: /opt/murmur.tar.bz2
+    dest: /opt/murmur
+    remote_src: yes
+    creates: /opt/murmur
+
+- name: Copy certificates
+  copy:
+    src: {{ item.src }}
+    dest: {{ item.dest }}
+    owner: murmur
+    group: murmur
+    mode: 0644
+    with_items:
+      - { src: "{{ sslcertorig }}", dest: "{{ sslcert }}" }
+      - { src: "{{ sslkeyorig }}", dest: "{{ sslkey }}" }
+
+- name: Add configuration for murmur
+  template: src=murmur.ini.j2 dest=/etc/murmur.ini
+
+- name: Add firewalld murmur service
+  copy:
+    src: "murmur.xml"
+    dest: "/usr/lib/firewalld/services/murmur.xml"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy systemd service file
+  copy:
+    src: "murmur.service"
+    dest: "/etc/systemd/system/murmur.service"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Reload systemd daemon
+  systemd: daemon_reload=yes
+
+- name: Make firewalld changes
+  firewalld:
+    service: murmur
+    permanent: true
+    state: enabled
+
+- name: Enable murmur systemd service
+  systemd: name=murmur enabled=yes
+
+- name: Restart murmur
+  service: name=murmur state=restarted
