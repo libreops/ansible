@@ -1,0 +1,14 @@
+[Unit]
+Description=Mumble Server (Murmur)
+Requires=network-online.target
+After=network-online.target time-sync.target
+
+[Service]
+User=murmur
+Type=forking
+ExecStart=/opt/murmur/murmur.x86 -ini /etc/murmur.ini
+PIDFile=/var/run/murmur/murmur.pid
+ExecReload=/bin/kill -s HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

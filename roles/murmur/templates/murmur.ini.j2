@@ -1,0 +1,17 @@
+# for full configuration options see /opt/murmur/murmur.ini
+
+database=/var/lib/murmur/murmur.sqlite
+logfile=/var/log/murmur/murmur.log
+pidfile=/var/run/murmur/murmur.pid
+
+welcometext="<br>Welcome to Hackerspace.gr Mumble server.<br>Enjoy your stay!<br>"
+
+port=64738
+serverpassword=
+host=mumble.hackerspace.gr
+bandwidth=72000
+users=100
+
+sslCert={{ sslcert }}
+sslKey={{ sslkey }}
+sslCiphers=EECDH+AESGCM:AES256-SHA:AES128-SHA
