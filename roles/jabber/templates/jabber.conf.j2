@@ -28,7 +28,7 @@ server {
     }
 
     location /modules/ {
-       return 301 https://gnu.gr/;
+       return 301 https://{{ vhost }}/;
     }
 
     location /jabberbot/ {

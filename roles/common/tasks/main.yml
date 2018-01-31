@@ -16,6 +16,9 @@
     - mlocate
     - certbot
 
+- name: Set hostname
+  hostname: name={{ inventory_hostname }}
+
 - name: Update admins
   authorized_key:
     user: "{{ ansible_user }}"

@@ -1,9 +1,9 @@
 ---
 # vars file for prosody
 
-vhost: "gnu.gr"
+vhost: "{{ domain }}{{ tld}}"
 prosody_path: "/etc/prosody"
-website_path: "/var/www/gnu.gr"
+website_path: "/var/www/{{ domain }}{{ tld}}"
 repo_url: "https://github.com/hsgr/gnu.gr"
 cert_path: "{{ prosody_path }}/certs"
 modules_path: "{{ prosody_path }}/modules"

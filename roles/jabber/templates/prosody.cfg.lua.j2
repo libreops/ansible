@@ -56,7 +56,7 @@ allow_registration = false;
 min_seconds_between_registrations = 3600;
 
 -- HTTP settings
-https_ports = { 5281 }
+https_ports = { {{ http_port }} }
 https_interfaces = { "*" }
 http_paths = {
     register_web = "/register";
