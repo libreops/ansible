@@ -4,10 +4,6 @@
 
 - name: Install EPEL repo
   yum: name=epel-release state=present
-  tags:
-    - yum
-    - pkg
-    - epel
 
 - name: Install system dependencies
   yum: name={{ item }} state=present
@@ -17,9 +13,8 @@
     - policycoreutils-python
     - git
     - bash-completion
-  tags:
-    - yum
-    - pkg
+    - mlocate
+    - certbot
 
 - name: Update admins
   authorized_key:

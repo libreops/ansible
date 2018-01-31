@@ -26,8 +26,6 @@
     owner: root
     group: root
     mode: 0600
-  tags:
-    - mycnf
 
 - name: Remove anonymous MySQL user.
   mysql_user: "name='' state=absent"

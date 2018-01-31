@@ -5,6 +5,4 @@
   roles:
     - common
     - firewalld
-    - nginx
-    - mariadb
-    - pad
+    - murmur

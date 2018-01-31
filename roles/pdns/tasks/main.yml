@@ -11,9 +11,6 @@
       src: "comzeradd-dnscrypt.repo",
       dest: "/etc/yum.repos.d/"
       }
-  tags:
-    - yum
-    - pdns
 
 - name: Install required packages
   yum: name={{ item }} state=present
@@ -21,9 +18,6 @@
     - pdns-recursor
     - dnscrypt-wrapper
     - bind-utils
-  tags:
-    - yum
-    - pdns
 
 - name: Ensure PowerDNS configuration directory exists
   file: name={{ pdns_rec_config_dir }} state=directory owner="root" group="root"
@@ -40,10 +34,6 @@
   with_items:
     - 53/udp
   notify: restart firewalld
-  tags:
-    - pdns
 
 - name: Start and enable the PowerDNS Recursor service
   service: name=pdns-recursor state=started enabled=true
-  tags:
-    - service

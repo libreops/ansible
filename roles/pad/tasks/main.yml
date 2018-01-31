@@ -10,10 +10,6 @@
     - gcc
     - nodejs
     - npm
-  tags:
-    - yum
-    - pkg
-    - pad
 
 #- name: install the 'Development tools' package group
 #  yum: name="@Development tools" state=present
@@ -40,9 +36,6 @@
     version: "{{ pad_tag }}"
     force: yes
     update: yes
-  tags:
-    - repo
-    - app
 
 - name: Install pad dependencies
   become_user: pad
@@ -80,8 +73,6 @@
     owner: pad
     group: pad
     mode: 0600
-  tags:
-    - pad
 
 - name: Add port to selinux http policy
   command: semanage port -a -t http_port_t -p tcp {{ siteport }}
@@ -96,9 +87,6 @@
     owner: root
     group: root
     mode: 0644
-  tags:
-    - pad
-    - systemd
   notify:
     - daemon reload
 
@@ -109,21 +97,11 @@
     owner: root
     group: root
     mode: 644
-  tags:
-    - pad
-    - nginx
 
 - name: Enable pad service
   service: name=pad-{{ sitename }} state=started enabled=yes
-  tags:
-    - pad
-    - systemd
-
 
 - name: Restart pad and nginx
   service: name=pad-{{ sitename }} state=restarted enabled=yes
   notify:
     - restart nginx
-  tags:
-    - pad
-    - nginx

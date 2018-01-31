@@ -3,4 +3,7 @@
   become: true
 
   roles:
-    - { role: jabber, tags: ['jabber'] }
+    - common
+    - firewalld
+    - nginx
+    - jabber

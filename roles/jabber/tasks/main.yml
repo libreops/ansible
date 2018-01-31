@@ -2,13 +2,7 @@
 - include_vars: private.yml
 
 - name: Install prosody
-  yum: name={{ item }} state=present
-  with_items:
-    - prosody
-    - letsencrypt
-  tags:
-    - pkg
-    - yum
+  yum: name=prosody state=present
 
 - name: Add gnu group
   group: name=gnu state=present
@@ -25,7 +19,7 @@
     recurse: yes
 
 - name: Attempt to get the certificate using the webroot authenticator
-  command: letsencrypt --agree-tos --email {{ letsencrypt_email }} -a webroot -w {{ website_path }} -d {{ vhost }} -d www.{{ vhost }} certonly
+  command: certbot --agree-tos --email {{ letsencrypt_email }} -a webroot -w {{ website_path }} -d {{ vhost }} -d conf.{{ vhost }} -d www.{{ vhost }} certonly
   args:
     creates: "/etc/letsencrypt/live/{{ vhost }}"
 
@@ -33,8 +27,6 @@
   command: openssl dhparam -out {{ cert_path }}/dhparam.pem 2048
   args:
     creates: "{{ cert_path }}/dhparam.pem"
-  tags:
-    - ssl
 
 - name: Copy SSL certs for prosody
   copy:
@@ -53,15 +45,11 @@
       src: "/etc/letsencrypt/live/{{ vhost }}/privkey.pem",
       dest: "{{ cert_path }}/ssl.key"
       }
-  tags:
-    - ssl
 
 - name: Create dhparam.pem if not exists
   command: >
     openssl dhparam -out {{ cert_path }}/dhparam.pem 2048
     creates={{ cert_path }}/dhparam.pem
-  tags:
-    - ssl
 
 - name: Copy prosody configuration file
   template:
@@ -80,9 +68,6 @@
     version: "master"
     force: yes
     update: yes
-  tags:
-    - repo
-    - app
 
 - name: Create prodody modules directory
   file:
@@ -112,8 +97,6 @@
     owner: root
     group: root
     mode: 644
-  tags:
-    - nginx
   notify: restart nginx
 
 - name: Add jabber ports to firewall
@@ -123,8 +106,6 @@
     - 5269/tcp
     - "{{ http_port }}/tcp"
   notify: restart firewalld
-  tags:
-    - firewall
 
 - name: Allow prosody to open http port
   seport: ports={{ http_port }} proto=tcp setype=jabber_client_port_t state=present

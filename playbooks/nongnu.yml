@@ -1,0 +1,14 @@
+---
+- hosts: venus
+  become: true
+
+  vars:
+    domain: nongnu
+    tld: gr
+
+
+  roles:
+    - common
+    - firewalld
+    - nginx
+    - openldap
