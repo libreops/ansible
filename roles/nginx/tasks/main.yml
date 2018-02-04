@@ -39,34 +39,6 @@
   register: rm_result
   changed_when: 'rm_result.stdout != ""'
 
-- name: Create ssl directory
-  file:
-    path: /etc/ssl/hackerspace.gr/
-    state: directory
-    owner: root
-    group: root
-    mode: 0700
-  tags:
-    - ssl
-
-- name: Copy ssl cerificates
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: root
-    group: root
-    mode: 0400
-  with_items:
-    - {
-      src: "ssl/hackerspace.gr/ssl-unified.crt",
-      dest: "{{ ssl_cert }}"
-      }
-    - {
-      src: "ssl/hackerspace.gr/ssl.key",
-      dest: "{{ ssl_cert_key }}"
-      }
-  notify: restart nginx
-
 - name: Add nginx ports to firewall
   firewalld: port={{ item }} zone=public permanent=true state=enabled
   with_items:
