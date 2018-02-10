@@ -1,0 +1,5 @@
+---
+# Perform a system update and restart all the services.
+- include: check_updates.yml
+- include: system_update.yml
+- include: reboot.yml

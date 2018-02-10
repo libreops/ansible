@@ -30,6 +30,10 @@
       src: "nginx.conf.j2",
       dest: "/etc/nginx/nginx.conf"
       }
+    - {
+      src: "default.conf.j2",
+      dest: "/etc/nginx/conf.d/default.conf"
+      }
 
 - name: Create dhparam.pem if not exists
   command: openssl dhparam -out /etc/ssl/dhparam.pem 2048 creates=/etc/ssl/dhparam.pem

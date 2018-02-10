@@ -18,10 +18,3 @@
 
 - name: Set hostname
   hostname: name={{ inventory_hostname }}
-
-- name: Update admins
-  authorized_key:
-    user: "{{ ansible_user }}"
-    state: present
-    exclusive: yes
-    key: "{{ admins|join('\n') }}"

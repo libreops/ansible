@@ -1,0 +1,15 @@
+---
+- name: Update system
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars_prompt:
+    - name: "system_update"
+      prompt: "Do you wish to perform a system update? (yes/no)"
+      private: no
+      default: "no"
+
+  tasks:
+    - yum: name=* state=latest update_cache=yes
+      when: system_update == "yes"

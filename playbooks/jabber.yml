@@ -1,9 +1,0 @@
----
-- hosts: jupiter
-  become: true
-
-  roles:
-    - common
-    - firewalld
-    - nginx
-    - jabber
