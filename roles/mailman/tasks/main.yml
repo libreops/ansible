@@ -1,0 +1,76 @@
+---
+# tasks file for mailman
+- include_vars: private.yml
+
+- name: Install mailman packages
+  yum: name={{ item }} state=installed
+  with_items:
+  - mailman
+  - spawn-fcgi
+
+- name: Configure Mailman
+  template:
+    src: 'mm_cfg.py.j2'
+    dest: '/etc/mailman/mm_cfg.py'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+
+- name: Create Mailman site list
+  command: /usr/lib/mailman/bin/newlist mailman {{ mailman_admin }} {{ mailman_password }}
+
+- name: Add mailman hashes on postfix
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: '^alias_maps'
+    line: 'alias_maps = hash:/etc/aliases, hash:/etc/mailman/aliases'
+
+- name: Hash aliases
+  command: postmap /etc/mailman/aliases
+
+- name: Add custom listinfo method
+  template:
+    src: 'listinfo_custom.py.j2'
+    dest: '/usr/lib/mailman/Mailman/custom.py'
+    owner: 'root'
+    group: 'mailman'
+    mode: '0644'
+
+- name: Import our custom listinfo method
+  lineinfile:
+    path: '/usr/lib/mailman/Mailman/Cgi/listinfo.py'
+    insertafter: 'from Mailman import i18n'
+    line: 'from Mailman import custom'
+
+- name: Use our custom listinfo method
+  lineinfile:
+    path: '/usr/lib/mailman/Mailman/Cgi/listinfo.py'
+    insertafter: 'def listinfo_overview'
+    line: '    print custom.listinfo_overview();return'
+
+- name: Add fcgi files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  with_items:
+    - {
+      src: "spawn-fcgi",
+      dest: "/etc/sysconfig/spawn-fcgi",
+      mode: "0644"
+      }
+    - {
+      src: "fcgiwrap",
+      dest: "/usr/sbin/fcgiwrap",
+      mode: "0755"
+      }
+
+- name: Copy mailman nginx vhost configuration
+  template:
+    src: "lists.conf.j2"
+    dest: "/etc/nginx/conf.d/lists.conf"
+    owner: root
+    group: root
+    mode: 644
