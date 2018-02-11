@@ -1,0 +1,34 @@
+---
+# tasks file for postfix
+
+- name: Install postfix packages
+  yum: name={{ item }} state=installed
+  with_items:
+  - postfix
+  - postgrey
+
+- name: Copy configuration files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - {
+      src: "main.cf.j2",
+      dest: "/etc/postfix/main.cf"
+      }
+    - {
+      src: "master.cf.j2",
+      dest: "/etc/postfix/master.cf"
+      }
+
+- name: Hash aliases
+  command: postmap /etc/aliases
+
+- name: Start postgrey service
+  service: name=postgrey state=started enabled=yes
+
+- name: Start postfix service
+  service: name=postfix state=started enabled=yes

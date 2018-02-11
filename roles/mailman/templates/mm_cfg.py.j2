@@ -1,0 +1,20 @@
+from Defaults import *
+import pwd, grp
+
+MAILMAN_UID = pwd.getpwnam('mailman')[2]
+MAILMAN_GID = grp.getgrnam('mailman')[2]
+
+from socket import *
+try:
+    fqdn = getfqdn()
+except:
+    fqdn = 'mm_cfg_has_unknown_host_domains'
+
+DEFAULT_URL_HOST   = 'lists.{{ mailman_domain }}'
+DEFAULT_EMAIL_HOST = '{{ mailman_domain }}'
+
+DEFAULT_URL_PATTERN = 'https://%s/'
+
+MTA = 'Postfix'
+
+add_virtualhost(DEFAULT_URL_HOST, DEFAULT_EMAIL_HOST)

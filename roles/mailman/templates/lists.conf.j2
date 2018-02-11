@@ -1,0 +1,96 @@
+server {
+    listen [::]:80;
+    listen 80;
+    server_name {{ mailman_domain }} www.{{ mailman_domain }};
+    return 301 https://{{ mailman_domain }}$request_uri;
+}
+
+server {
+    listen [::]:80;
+    listen 80;
+    server_name lists.{{ mailman_domain }};
+    return 301 https://lists.{{ mailman_domain }}$request_uri;
+}
+
+server {
+    listen [::]:443 ssl http2;
+    listen 443 ssl http2;
+    server_name www.{{ mailman_domain }};
+    return 301 https://{{ mailman_domain }}$request_uri;
+
+    ssl_certificate /etc/letsencrypt/live/{{ mailman_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ mailman_domain }}/privkey.pem;
+}
+
+server {
+    listen [::]:443 ssl http2;
+    listen 443 ssl http2;
+    server_name {{ mailman_domain }};
+
+    root /var/www/{{ mailman_domain }}/;
+    index index.html;
+
+    ssl_certificate /etc/letsencrypt/live/{{ mailman_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ mailman_domain }}/privkey.pem;
+
+    error_log   /var/log/nginx/{{ mailman_domain }}_error.log;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        default_type "text/plain";
+    }
+
+    error_page 404 = /;
+}
+
+server {
+    listen [::]:443 ssl http2;
+    listen 443 ssl http2;
+    server_name lists.{{ mailman_domain }};
+
+    root /usr/lib/mailman/cgi-bin;
+
+    ssl_certificate /etc/letsencrypt/live/{{ mailman_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ mailman_domain }}/privkey.pem;
+
+    error_log   /var/log/nginx/{{ mailman_domain }}_error.log;
+
+    location = / {
+        rewrite ^ /listinfo permanent;
+    }
+
+    # fcgiwrap
+    location / {
+        # Disable gzip (it makes scripts feel slower since they have to complete
+        # before getting gzipped)
+        gzip off;
+
+        fastcgi_split_path_info ^(/[^/]*)(.*)$;
+        include fastcgi.conf;
+        fastcgi_param PATH_INFO         $fastcgi_path_info;
+        fastcgi_param PATH_TRANSLATED   $document_root$fastcgi_path_info;
+
+        fastcgi_intercept_errors on;
+        fastcgi_pass  unix:/var/run/spawn-fcgi.sock;
+    }
+
+    location /icons {
+        alias /usr/lib/mailman/icons;
+    }
+
+    location /static {
+        alias /opt/funky-mailman/static;
+    }
+
+    location /pipermail {
+        alias /var/lib/mailman/archives/public;
+        autoindex on;
+    }
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        default_type "text/plain";
+    }
+
+    error_page 404 = /;
+}
