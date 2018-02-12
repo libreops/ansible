@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -e
+
+# Backblaze B2 configuration variables
+B2_ACCOUNT="{{ bb2_account }}"
+B2_KEY="{{ bb2_key }}"
+B2_BUCKET="{{ bb2_bucket }}"
+export PASSPHRASE="{{ bb2_passphrase }}"
+
+# Local configuration variables
+DATE=$(date +%F-%s)
+DEST="{{ backup_path }}"
+LOGFILE="${DEST}/backup.log"
+TARFILE="${DEST}/backup-${DATE}.tar.gz"
+SQLFILES="${DEST}/mariadb/"
+MAILMANDIR="/var/lib/mailman"
+PROSODYDIR="/var/lib/prosody"
+MURMURSQL="/var/lib/murmur/murmur.sqlite"
+
+# Make sure backup dirs exits
+[ ! -d "$DEST/latest" ] && mkdir -p "$DEST/latest"
+[ ! -d "$DEST/mariadb" ] && mkdir -p "$DEST/mariadb"
+
+# Dump all databases
+databases=`mysql -e "SHOW DATABASES;" | grep -Ev "(Database|information_schema|performance_schema)"`
+for db in $databases; do
+  mysqldump --single-transaction $db | gzip > "$DEST/mariadb/$db.gz"
+done
+
+# Backblaze backup
+# Remove files older than 90 days from Backblaze
+duplicity remove-older-than 90D --force b2://${B2_ACCOUNT}:${B2_KEY}@${B2_BUCKET}
+# Sync everything to Backblaze
+duplicity --include=${SQLFILES} --include=${MAILMANDIR} --include=${PROSODYDIR} --include=${MURMURSQL} --exclude='**' / b2://${B2_ACCOUNT}:${B2_KEY}@${B2_BUCKET}
+# Cleanup failures
+duplicity cleanup --force b2://${B2_ACCOUNT}:${B2_KEY}@${B2_BUCKET}
+
+# Local backup
+# Tar everything up and then gunzip it.
+tar zcf ${TARFILE} ${SQLFILES} ${MAILMANDIR} ${PROSODYDIR} ${MURMURSQL}
+# If backup completed successfully, remove the SQL dumps.
+[ $? -eq 0 ] && rm -rf ${SQLFILES}/*
+# Keep a simple backup log with size name and md5sum.
+echo -e "$(du -sh ${TARFILE})\t$(md5sum ${TARFILE} | awk '{print $1}')" >> ${LOGFILE}
+# Remove tars in `latest/` dir.
+rm -rf ${DEST}/latest/*tar.gz
+# Copy tar backup to `latest/` dir. Hack to download latest backup via ansible.
+mv ${TARFILE} ${DEST}/latest/

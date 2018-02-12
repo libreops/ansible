@@ -1,0 +1,5 @@
+---
+# vars file for backups
+
+backup_path: "/var/backup/"
+downloads_path: "../Downloads/{{ ansible_hostname }}/"

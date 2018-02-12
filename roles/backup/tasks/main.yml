@@ -1,0 +1,43 @@
+---
+- include_vars: private.yml
+
+- name: Install duplicity
+  yum: name=duplicity state=present
+
+- name: Install b2 python module
+  pip: name=b2
+
+- name: Make sure needed directories exist
+  file: path={{ item }} state=directory recurse=yes
+  with_items:
+    - /root/bin
+    - "{{ backup_path }}"
+    - "{{ backup_path }}/latest"
+  register: bin_path
+
+- name: Copy backup script
+  template:
+    src: backup.sh.j2
+    dest: /root/bin/backup.sh
+    owner: root
+    group: root
+    mode: 0700
+  when: bin_path|success
+
+- name: Add a cronjob symlink
+  file:
+    path: /etc/cron.weekly/backup.sh
+    src: /root/bin/backup.sh
+    state: link
+    force: yes
+
+- name: Download backup.log
+  fetch: >
+    src={{ item.src }}
+    dest={{ item.dest }}
+    flat=yes
+    fail_on_missing=yes
+    validate_checksum=no
+  with_items:
+    - src: "{{ backup_path }}/backup.log"
+      dest: "{{ downloads_path }}"

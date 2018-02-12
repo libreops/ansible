@@ -15,6 +15,7 @@
     - bash-completion
     - mlocate
     - certbot
+    - python2-pip
 
 - name: Set hostname
   hostname: name={{ inventory_hostname }}
