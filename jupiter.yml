@@ -4,6 +4,7 @@
 
   vars:
     - mail_domain: 'jupiter.hackerspace.gr'
+    - jabber_domain: 'gnu.gr'
     - mailman_domain: 'diskuti.gr'
     - mailman_desc: 'diskuti - Online communication tools for grassroots communities'
     - mailman_logo: 'https://diskuti.gr/static/img/diskuti.png'

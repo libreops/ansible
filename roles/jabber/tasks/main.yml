@@ -19,9 +19,9 @@
     recurse: yes
 
 - name: Attempt to get the certificate using the webroot authenticator
-  command: certbot --agree-tos --email {{ letsencrypt_email }} -a webroot -w {{ website_path }} -d {{ vhost }} -d conf.{{ vhost }} -d www.{{ vhost }} certonly
+  command: certbot --agree-tos --email {{ letsencrypt_email }} -a webroot -w {{ website_path }} -d {{ jabber_domain }} -d conf.{{ jabber_domain }} -d www.{{ jabber_domain }} certonly
   args:
-    creates: "/etc/letsencrypt/live/{{ vhost }}"
+    creates: "/etc/letsencrypt/live/{{ jabber_domain }}"
 
 - name: Create dhparam.pem if not exists
   command: openssl dhparam -out {{ cert_path }}/dhparam.pem 2048
@@ -38,11 +38,11 @@
     mode: 0400
   with_items:
     - {
-      src: "/etc/letsencrypt/live/{{ vhost }}/fullchain.pem",
+      src: "/etc/letsencrypt/live/{{ jabber_domain }}/fullchain.pem",
       dest: "{{ cert_path }}/ssl.crt"
       }
     - {
-      src: "/etc/letsencrypt/live/{{ vhost }}/privkey.pem",
+      src: "/etc/letsencrypt/live/{{ jabber_domain }}/privkey.pem",
       dest: "{{ cert_path }}/ssl.key"
       }
 
@@ -99,11 +99,16 @@
     mode: 644
   notify: restart nginx
 
+- name: Add jabber services to firewall
+  firewalld: service={{ item }} zone=public permanent=true state=enabled
+  with_items:
+    - xmpp-client
+    - xmpp-server
+  notify: restart firewalld
+
 - name: Add jabber ports to firewall
   firewalld: port={{ item }} zone=public permanent=true state=enabled
   with_items:
-    - 5222/tcp
-    - 5269/tcp
     - "{{ http_port }}/tcp"
   notify: restart firewalld
 
