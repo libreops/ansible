@@ -1,0 +1,75 @@
+---
+# tasks file for openldap
+- include_vars: private.yml
+
+- name: Install openldap
+  yum: name={{ item }} state=present
+  with_items:
+    - openldap
+    - openldap-clients
+    - openldap-servers
+
+- name: Copy default DB_CONFIG
+  copy:
+    src: /usr/share/openldap-servers/DB_CONFIG.example
+    dest: /var/lib/ldap/DB_CONFIG
+    remote_src: yes
+    owner: ldap
+    group: ldap
+
+- name: Enable openldap service
+  service: name=slapd state=started enabled=yes
+
+- name: Create an admin password config
+  template:
+    src: chrootpw.ldif.j2
+    dest: /tmp/chrootpw.ldif
+
+- name: Apply admin password config
+  command: ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/chrootpw.ldif
+
+- name: Remove the admin password config
+  file:
+    path: /tmp/chrootpw.ldif
+    state: absent
+
+- name: Import some common schemas
+  shell: ldapadd -Y EXTERNAL -H ldapi:// -f /etc/openldap/schema/{{ item }}
+  with_items:
+    - cosine.ldif
+    - nis.ldif
+    - inetorgperson.ldif
+  ignore_errors: yes
+
+- name: Create a domain name config
+  template:
+    src: chdomain.ldif.j2
+    dest: /tmp/chdomain.ldif
+
+- name: Set the domain name on LDAP DB
+  command: ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/chdomain.ldif
+
+- name: Remove the domain name config
+  file:
+    path: /tmp/chdomain.ldif
+    state: absent
+
+- name: Create a domain schema config
+  template:
+    src: basedomain.ldif.j2
+    dest: /tmp/basedomain.ldif
+
+- name: Apply the domain schema config
+  shell: ldapadd -x -D cn=Manager,dc={{ domain }},dc={{ tld }} -w {{ ldap_admin_password }} -f /tmp/basedomain.ldif
+
+- name: Remove the domain schema config
+  file:
+    path: /tmp/basedomain.ldif
+    state: absent
+
+- name: Add openldap to firewall
+  firewalld: service=ldap zone=public permanent=true state=enabled
+  notify: restart firewalld
+
+- name: Restart openldap service
+  service: name=slapd state=restarted

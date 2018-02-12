@@ -1,0 +1,19 @@
+dn: dc={{ domain }},dc={{ tld }}
+objectClass: top
+objectClass: dcObject
+objectclass: organization
+o: Server {{ tld }}
+dc: {{ domain }}
+
+dn: cn=Manager,dc={{ domain }},dc={{ tld }}
+objectClass: organizationalRole
+cn: Manager
+description: Directory Manager
+
+dn: ou=People,dc={{ domain }},dc={{ tld }}
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Group,dc={{ domain }},dc={{ tld }}
+objectClass: organizationalUnit
+ou: Group
