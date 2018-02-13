@@ -6,6 +6,7 @@
     - mariadb
     - mariadb-server
     - mariadb-devel
+    - MySQL-python
 
 - name: Ensure MariaDB is started and enabled on boot
   service: name=mariadb state=started enabled=yes
