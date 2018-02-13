@@ -50,6 +50,7 @@
   with_items:
     - ep_padlist
     - ep_disableChat
+    - ep_spellcheck
 
 - name: Create pad database
   mysql_db:
