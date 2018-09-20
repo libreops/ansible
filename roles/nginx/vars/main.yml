@@ -1,3 +1,0 @@
----
-ssl_cert: "/etc/ssl/hackerspace.gr/ssl-unified.crt"
-ssl_cert_key: "/etc/ssl/hackerspace.gr/ssl.key"

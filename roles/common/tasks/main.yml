@@ -16,6 +16,8 @@
     - mlocate
     - certbot
     - python2-pip
+    - wget
+    - unzip
 
 - name: Set hostname
   hostname: name={{ inventory_hostname }}

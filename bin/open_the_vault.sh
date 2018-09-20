@@ -1,3 +1,3 @@
 #!/bin/sh
 # https://blog.andrewlorente.com/p/using-pgp-to-encrypt-the-ansible-vault
-gpg2 --batch --use-agent --decrypt vault-passwd.txt.gpg
+gpg --batch --use-agent --decrypt vault-passwd.txt.gpg

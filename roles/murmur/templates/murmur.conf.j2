@@ -1,0 +1,23 @@
+server {
+    listen [::]:80;
+    listen 80;
+    server_name {{ murmur_domain }};
+    return 301 https://{{ murmur_domain }}$request_uri;
+}
+
+server {
+    listen [::]:443 ssl http2;
+    listen 443 ssl http2;
+    server_name {{ murmur_domain }};
+
+    root /var/www/mumble/;
+    index index.html;
+
+    ssl_certificate /etc/letsencrypt/live/libreops.cc/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/libreops.cc/privkey.pem;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        default_type "text/plain";
+    }
+}
