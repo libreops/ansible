@@ -41,3 +41,11 @@
   with_items:
     - src: "{{ backup_path }}/backup.log"
       dest: "{{ downloads_path }}"
+
+- name: Add certbot.sh
+  file:
+    src: certbot.sh
+    dest: /etc/cron.weekly/certbot.sh
+    owner: root
+    group: root
+    mode: '0750'
